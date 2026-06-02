@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../widgets/auth/auth_dialogs.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../bloc/auth/auth_bloc.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -18,17 +19,38 @@ class _SignupScreenState extends State<SignupScreen> {
   final Color primaryColor = const Color(0xFF0D47A1);
 
   void _signup() {
-    AuthDialogs.showSuccessDialog(
-      context, 
-      "Success", 
-      "Account created successfully! Please login.",
-      onConfirm: () => Navigator.of(context).pop(),
-    );
+    if (_formKey.currentState!.validate()) {
+      context.read<AuthBloc>().add(
+        SignUpRequested(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is SignUpSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Account created successfully! Please login."),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.of(context).pop();
+        } else if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F7),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -84,7 +106,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  validator: (value) => value!.isEmpty ? "Please enter your email" : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter your email";
+                    }
+                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (!emailRegex.hasMatch(value.trim())) {
+                      return "Please enter a valid email address";
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -117,15 +148,29 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: _signup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 4,
-                  ),
-                  child: const Text("SIGN UP", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    final isLoading = state is AuthLoading;
+                    return ElevatedButton(
+                      onPressed: isLoading ? null : _signup,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 4,
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text("SIGN UP", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -145,6 +190,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
