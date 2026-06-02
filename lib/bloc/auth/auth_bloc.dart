@@ -24,8 +24,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       switch (e.code) {
         case 'invalid-credential':
         case 'wrong-password':
-        case 'user-not-found':
           return 'Invalid email or password.';
+        case 'user-not-found':
+          return 'This user is not available.';
         case 'email-already-in-use':
           return 'This email is already registered.';
         case 'weak-password':

@@ -37,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
         if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
