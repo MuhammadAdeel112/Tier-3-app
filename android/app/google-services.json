@@ -7,48 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:508539851153:android:015bb4166996fbce0f8a30",
-        "android_client_info": {
-          "package_name": "com.example.tier3fstpro"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "508539851153-06o86nf3k891rqfs7v38pabieuh3qkjs.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBE-F6CIrASjvAvUfiAB0PK-B7gc1Xy9c8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "508539851153-06o86nf3k891rqfs7v38pabieuh3qkjs.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "508539851153-9nq545hlvk3omfrorud0t55obf9s7f26.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.tier3fstpro"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:508539851153:android:3f2b2007e417b2b20f8a30",
         "android_client_info": {
           "package_name": "com.example.tier_3_fst_pro"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "508539851153-fqlc66kbq0ob1cutl4nrpsttbpove9eh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tier_3_fst_pro",
+            "certificate_hash": "abd1c2fe100c7eb8c5e55ede60f915d87e349910"
+          }
+        },
         {
           "client_id": "508539851153-06o86nf3k891rqfs7v38pabieuh3qkjs.apps.googleusercontent.com",
           "client_type": 3
