@@ -9,9 +9,23 @@ abstract class AuthState extends Equatable {
 
 class AuthInitial extends AuthState {}
 
-class AuthLoading extends AuthState {}
+class AuthLoading extends AuthState {
+  final bool isGoogle;
 
-class Authenticated extends AuthState {}
+  const AuthLoading({this.isGoogle = false});
+
+  @override
+  List<Object?> get props => [isGoogle];
+}
+
+class Authenticated extends AuthState {
+  final String role;
+
+  const Authenticated(this.role);
+
+  @override
+  List<Object?> get props => [role];
+}
 
 class SignUpSuccess extends AuthState {}
 

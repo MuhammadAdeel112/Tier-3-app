@@ -58,14 +58,13 @@ class FBRBillingViewModel extends ChangeNotifier {
   final TextEditingController customerSearchController = TextEditingController();
   bool showCustomerDropdown = false;
 
-  final List<Product> allProducts = const [
-    Product(id: "P1", name: "HP Laptop Pro EliteBook", price: 85000, gstRate: 0.18, category: "Hardware"),
-    Product(id: "P2", name: "Microsoft Office 365 Enterprise", price: 30000, gstRate: 0.18, category: "Software"),
-    Product(id: "P3", name: "Tier3 Gateway Firewall Appliance", price: 120000, gstRate: 0.18, category: "Security Hardware"),
-    Product(id: "P4", name: "Sentinel IPS Subscription (1 Year)", price: 45000, gstRate: 0.18, category: "Security Subscriptions"),
-    Product(id: "P5", name: "Secure VPN Hardware Token v2", price: 15000, gstRate: 0.18, category: "Security Accessories"),
-    Product(id: "P6", name: "Cybersecurity Compliance Audit Kit", price: 95000, gstRate: 0.18, category: "Services"),
-  ];
+  late final List<Product> allProducts;
+  
+  // Pagination & Search State
+  int currentPage = 0;
+  int itemsPerPage = 10;
+  final List<int> itemsPerPageOptions = [10, 20, 30, 40, 50, 60];
+  String productSearchQuery = "";
 
   final List<CartItem> cartItems = [];
 
@@ -85,6 +84,29 @@ class FBRBillingViewModel extends ChangeNotifier {
   FBRBillingViewModel() {
     selectedSalesType = salesTypes[0];
     customerSearchController.text = selectedCustomer;
+
+    final initialProducts = [
+      const Product(id: "P1", name: "HP Laptop Pro EliteBook", price: 85000, gstRate: 0.18, category: "Hardware"),
+      const Product(id: "P2", name: "Microsoft Office 365 Enterprise", price: 30000, gstRate: 0.18, category: "Software"),
+      const Product(id: "P3", name: "Tier3 Gateway Firewall Appliance", price: 120000, gstRate: 0.18, category: "Security Hardware"),
+      const Product(id: "P4", name: "Sentinel IPS Subscription (1 Year)", price: 45000, gstRate: 0.18, category: "Security Subscriptions"),
+      const Product(id: "P5", name: "Secure VPN Hardware Token v2", price: 15000, gstRate: 0.18, category: "Security Accessories"),
+      const Product(id: "P6", name: "Cybersecurity Compliance Audit Kit", price: 95000, gstRate: 0.18, category: "Services"),
+    ];
+    
+    allProducts = [
+      ...initialProducts,
+      ...List.generate(54, (index) {
+        final i = index + 7;
+        return Product(
+          id: "P$i",
+          name: "Enterprise Security Product $i",
+          price: 10000.0 + (i * 2000),
+          gstRate: 0.18,
+          category: i % 3 == 0 ? "Software" : (i % 2 == 0 ? "Services" : "Hardware"),
+        );
+      })
+    ];
 
     // Pre-populate cart (Defaults matching mockup requirements):
     cartItems.add(CartItem(product: allProducts[0], quantity: 1));
@@ -142,6 +164,48 @@ class FBRBillingViewModel extends ChangeNotifier {
   void setSalesType(String value) {
     selectedSalesType = value;
     notifyListeners();
+  }
+
+  // Pagination Setters
+  void setItemsPerPage(int value) {
+    itemsPerPage = value;
+    currentPage = 0; // Reset to first page when changing items per page
+    notifyListeners();
+  }
+
+  void setPage(int page) {
+    currentPage = page;
+    notifyListeners();
+  }
+
+  void setProductSearchQuery(String query) {
+    productSearchQuery = query;
+    currentPage = 0;
+    notifyListeners();
+  }
+
+  List<Product> get filteredProducts {
+    if (productSearchQuery.isEmpty) return allProducts;
+    final query = productSearchQuery.toLowerCase();
+    return allProducts.where((p) => 
+      p.name.toLowerCase().contains(query) || 
+      p.category.toLowerCase().contains(query) || 
+      p.id.toLowerCase().contains(query)
+    ).toList();
+  }
+
+  List<Product> get paginatedProducts {
+    final list = filteredProducts;
+    final startIndex = currentPage * itemsPerPage;
+    final endIndex = (startIndex + itemsPerPage < list.length) ? (startIndex + itemsPerPage) : list.length;
+    if (startIndex >= list.length) return [];
+    return list.sublist(startIndex, endIndex);
+  }
+
+  int get totalPages {
+    final list = filteredProducts;
+    if (list.isEmpty) return 1;
+    return (list.length / itemsPerPage).ceil();
   }
 
   void setCustomer(String customer) {

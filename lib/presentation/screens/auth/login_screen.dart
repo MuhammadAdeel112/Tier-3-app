@@ -6,6 +6,8 @@ import '../../widgets/auth/auth_dialogs.dart';
 import '../fbr_billing_screen.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
+import '../admin_dashboard_screen.dart';
+import '../user_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _obscurePassword = true;
 
   final Color primaryColor = const Color(0xFF0D47A1);
   final Color accentColor = const Color(0xFFFFB300);
@@ -45,9 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const FBRBillingScreen()),
-          );
+          Navigator.of(context).popUntil((route) => route.isFirst);
         } else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -113,10 +114,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: _obscurePassword,
                     decoration: InputDecoration(
                       labelText: "Password",
                       prefixIcon: Icon(Icons.lock, color: primaryColor),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       filled: true,
                       fillColor: Colors.white,
@@ -136,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
-                      final isLoading = state is AuthLoading;
+                      final isLoading = state is AuthLoading && !state.isGoogle;
                       return ElevatedButton(
                         onPressed: isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
@@ -170,26 +182,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                SocialLoginButton(
-                  text: "Continue with Google",
-                  iconPath: "google",
-                  onPressed: () {
-                    AuthDialogs.showSuccessDialog(context, "Google Login", "Mock Google Login Successful!", onConfirm: () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const FBRBillingScreen()));
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                SocialLoginButton(
-                  text: "Continue with Apple",
-                  iconPath: "apple",
-                  isApple: true,
-                  onPressed: () {
-                    AuthDialogs.showSuccessDialog(context, "Apple Login", "Mock Apple Login Successful!", onConfirm: () {
-                      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const FBRBillingScreen()));
-                    });
-                  },
-                ),
+                if (Theme.of(context).platform == TargetPlatform.android) ...[
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      final isGoogleLoading = state is AuthLoading && state.isGoogle;
+                      return SocialLoginButton(
+                        text: "Continue with Google",
+                        iconPath: "google",
+                        isLoading: isGoogleLoading,
+                        onPressed: () {
+                          context.read<AuthBloc>().add(GoogleSignInRequested());
+                        },
+                      );
+                    },
+                  ),
+                ] else if (Theme.of(context).platform == TargetPlatform.iOS) ...[
+                  SocialLoginButton(
+                    text: "Continue with Apple",
+                    iconPath: "apple",
+                    isApple: true,
+                    onPressed: () {
+                      AuthDialogs.showSuccessDialog(context, "Apple Login", "Mock Apple Login Successful!", onConfirm: () {
+                        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const FBRBillingScreen()));
+                      });
+                    },
+                  ),
+                ],
                 const SizedBox(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

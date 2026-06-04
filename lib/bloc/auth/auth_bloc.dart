@@ -17,6 +17,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ForgotPasswordRequested>(_onForgotPasswordRequested);
     on<LogoutRequested>(_onLogoutRequested);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
+    on<AuthCheckRequested>(_onAuthCheckRequested);
   }
 
   String _getCleanErrorMessage(dynamic e) {
@@ -35,11 +36,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           return 'This account has been disabled.';
         case 'invalid-email':
           return 'Invalid email format.';
+        case 'network-request-failed':
+          return 'Network error. Please check your connection.';
         default:
-          return e.message ?? 'Authentication failed.';
+          return 'Authentication failed. Please try again.';
       }
     }
-    return e.toString();
+    return 'An error occurred. Please try again.';
+  }
+
+  Future<void> _onAuthCheckRequested(
+    AuthCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      final user = _authRepository.currentUser;
+      if (user != null) {
+        final role = await _authRepository.getUserRole(user.uid);
+        emit(Authenticated(role));
+      } else {
+        emit(Unauthenticated());
+      }
+    } catch (_) {
+      emit(Unauthenticated());
+    }
   }
 
   Future<void> _onLoginRequested(
@@ -53,7 +73,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
       if (user != null) {
-        emit(Authenticated());
+        final role = await _authRepository.getUserRole(user.uid);
+        emit(Authenticated(role));
       } else {
         emit(const AuthFailure('Login failed: User is null'));
       }
@@ -113,11 +134,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     GoogleSignInRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading(isGoogle: true));
     try {
       final user = await _authRepository.signInWithGoogle();
       if (user != null) {
-        emit(Authenticated());
+        final role = await _authRepository.getUserRole(user.uid);
+        emit(Authenticated(role));
       } else {
         // User cancelled sign in
         emit(Unauthenticated());

@@ -22,3 +22,5 @@ class ForgotPasswordRequested extends AuthEvent {
 class LogoutRequested extends AuthEvent {}
 
 class GoogleSignInRequested extends AuthEvent {}
+
+class AuthCheckRequested extends AuthEvent {}

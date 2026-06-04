@@ -5,6 +5,7 @@ class SocialLoginButton extends StatelessWidget {
   final String iconPath; // Provide an asset path or use an IconData
   final VoidCallback onPressed;
   final bool isApple;
+  final bool isLoading;
 
   const SocialLoginButton({
     super.key,
@@ -12,6 +13,7 @@ class SocialLoginButton extends StatelessWidget {
     required this.iconPath,
     required this.onPressed,
     this.isApple = false,
+    this.isLoading = false,
   });
 
   @override
@@ -36,21 +38,32 @@ class SocialLoginButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Using placeholder icon since we don't have assets yet
-            Icon(
-              isApple ? Icons.apple : Icons.g_mobiledata,
-              color: isApple ? Colors.white : Colors.red,
-              size: 28,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              text,
-              style: TextStyle(
-                color: isApple ? Colors.white : Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+            if (isLoading)
+              const SizedBox(
+                height: 24,
+                width: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                ),
+              )
+            else ...[
+              // Using placeholder icon since we don't have assets yet
+              Icon(
+                isApple ? Icons.apple : Icons.g_mobiledata,
+                color: isApple ? Colors.white : Colors.red,
+                size: 28,
               ),
-            ),
+              const SizedBox(width: 10),
+              Text(
+                text,
+                style: TextStyle(
+                  color: isApple ? Colors.white : Colors.black87,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ],
         ),
       ),
